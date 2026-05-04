@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>動画視聴ページ</title>
+  <title>統合初級講座 動画視聴</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;600&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -16,7 +16,6 @@
       --accent-bg: #f5ede0;
       --border: #e8e0d5;
       --error: #c0392b;
-      --success: #27ae60;
       --shadow: 0 4px 24px rgba(139,111,71,0.10);
     }
 
@@ -44,7 +43,6 @@
       margin-bottom: 48px;
     }
 
-    /* ===== LOGIN CARD ===== */
     .login-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -60,7 +58,6 @@
       font-weight: 400;
       font-size: 22px;
       margin-bottom: 8px;
-      color: var(--text-primary);
     }
 
     .login-card p {
@@ -70,9 +67,7 @@
       line-height: 1.7;
     }
 
-    .field {
-      margin-bottom: 20px;
-    }
+    .field { margin-bottom: 20px; }
 
     .field label {
       display: block;
@@ -138,29 +133,22 @@
       line-height: 1.6;
     }
 
-    /* ===== VIEWER ===== */
     #viewer {
       display: none;
       width: 100%;
-      max-width: 860px;
+      max-width: 900px;
     }
 
     .viewer-header {
-      margin-bottom: 28px;
+      margin-bottom: 24px;
       text-align: center;
     }
 
     .viewer-header h2 {
       font-family: 'Noto Serif JP', serif;
       font-weight: 400;
-      font-size: 20px;
-      margin-bottom: 6px;
-    }
-
-    .viewer-header .deadline {
-      font-size: 12px;
-      color: var(--text-secondary);
-      letter-spacing: 0.05em;
+      font-size: 22px;
+      margin-bottom: 10px;
     }
 
     .deadline-badge {
@@ -169,9 +157,38 @@
       color: var(--accent);
       border: 1px solid var(--accent-light);
       border-radius: 2px;
-      padding: 4px 12px;
+      padding: 4px 14px;
       font-size: 12px;
-      margin-top: 8px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      padding: 8px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      font-size: 12px;
+      font-family: 'Noto Sans JP', sans-serif;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn:hover {
+      border-color: var(--accent-light);
+      color: var(--accent);
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
     }
 
     .video-wrapper {
@@ -190,29 +207,40 @@
       border: none;
     }
 
-    .viewer-footer {
-      margin-top: 20px;
-      text-align: center;
-      font-size: 12px;
+    .now-playing {
+      margin-top: 12px;
+      font-size: 13px;
       color: var(--text-secondary);
+      text-align: center;
     }
 
-    /* ===== FADE ANIMATION ===== */
+    .now-playing span {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .viewer-footer {
+      margin-top: 16px;
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
     .fade-in {
-      animation: fadeIn 0.6s ease forwards;
+      animation: fadeIn 0.5s ease forwards;
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
+      from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
 
-  <div class="logo">Video Lecture</div>
+  <div class="logo">統合初級講座</div>
 
-  <!-- ログインフォーム -->
   <div class="login-card fade-in" id="loginCard">
     <h1>動画を視聴する</h1>
     <p>メールアドレスと視聴パスワードを入力してください。</p>
@@ -235,20 +263,20 @@
     </div>
   </div>
 
-  <!-- 動画ビューア -->
   <div id="viewer">
     <div class="viewer-header fade-in">
-      <h2 id="lectureTitle">講座タイトル</h2>
-      <div class="deadline">視聴期限</div>
+      <h2>統合初級講座</h2>
       <div class="deadline-badge" id="deadlineText"></div>
     </div>
+
+    <div class="tabs fade-in" id="tabArea"></div>
+
     <div class="video-wrapper fade-in">
-      <iframe id="videoFrame"
-        src=""
-        allow="autoplay; fullscreen"
-        allowfullscreen>
-      </iframe>
+      <iframe id="videoFrame" src="" allow="autoplay; fullscreen" allowfullscreen></iframe>
     </div>
+
+    <div class="now-playing">再生中：<span id="nowPlayingTitle"></span></div>
+
     <div class="viewer-footer">
       ※この動画はダウンロード不可です。視聴期限を過ぎるとアクセスできなくなります。
     </div>
@@ -257,62 +285,94 @@
   <script>
     // ============================================================
     // ★ここを編集してください★
-    // お客さんの情報をここに追加していきます
+    // お客さんが増えたらこの中に追加していきます
     // ============================================================
     const USERS = [
-      // 例：
+      // 例（テスト用・動作確認後は消してください）：
       // {
-      //   email: "client@example.com",   // お客さんのメールアドレス
-      //   password: "ABC12345",          // 発行したパスワード
-      //   deadline: "2025-06-30",        // 視聴期限（YYYY-MM-DD形式）
-      //   videoUrl: "https://drive.google.com/file/d/XXXX/preview",  // GoogleドライブのURL
-      //   title: "〇〇講座"             // 講座名
+      //   email: "test@example.com",
+      //   password: "TEST1234",
+      //   deadline: "2026-06-30",
       // },
+    ];
+
+    // 動画リスト（全員共通）
+    const VIDEOS = [
+      {
+        title: "1日目（午前）",
+        url: "https://drive.google.com/file/d/1LWOxlscM6Yw9ysFhaYRDsIF8SOzIJZcP/preview"
+      },
+      {
+        title: "1日目（午後）",
+        url: "https://drive.google.com/file/d/1L9W3___B2Gi-Saa-VZjmpQsY-vozVBbV/preview"
+      },
+      {
+        title: "2日目（午前①）",
+        url: "https://drive.google.com/file/d/1exsjYtPjcGKbXZZQbZfCNRpPQjcH2XIc/preview"
+      },
+      {
+        title: "2日目（午前②）",
+        url: "https://drive.google.com/file/d/1W_hIcoro7e_gSG9RXRO4-aHwGA40Bc-I/preview"
+      },
+      {
+        title: "2日目（午後）",
+        url: "https://drive.google.com/file/d/1tsgpgMODID77WlYUz2_BTqR8R5AUyjk9/preview"
+      },
     ];
     // ============================================================
 
     function checkAccess() {
       const email = document.getElementById('emailInput').value.trim().toLowerCase();
       const pass = document.getElementById('passInput').value.trim();
-      const errorMsg = document.getElementById('errorMsg');
-      const expiredMsg = document.getElementById('expiredMsg');
+      document.getElementById('errorMsg').style.display = 'none';
+      document.getElementById('expiredMsg').style.display = 'none';
 
-      errorMsg.style.display = 'none';
-      expiredMsg.style.display = 'none';
-
-      const user = USERS.find(u =>
-        u.email.toLowerCase() === email && u.password === pass
-      );
+      const user = USERS.find(u => u.email.toLowerCase() === email && u.password === pass);
 
       if (!user) {
-        errorMsg.style.display = 'block';
+        document.getElementById('errorMsg').style.display = 'block';
         return;
       }
 
-      // 期限チェック
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const deadline = new Date(user.deadline);
       deadline.setHours(23, 59, 59, 999);
 
       if (today > deadline) {
-        expiredMsg.style.display = 'block';
+        document.getElementById('expiredMsg').style.display = 'block';
         return;
       }
 
-      // 視聴ページへ
+      const dl = new Date(user.deadline);
+      const dlStr = `視聴期限：${dl.getFullYear()}年${dl.getMonth()+1}月${dl.getDate()}日まで`;
+      document.getElementById('deadlineText').textContent = dlStr;
+
+      const tabArea = document.getElementById('tabArea');
+      tabArea.innerHTML = '';
+      VIDEOS.forEach((v, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'tab-btn' + (i === 0 ? ' active' : '');
+        btn.textContent = v.title;
+        btn.onclick = () => switchVideo(i);
+        tabArea.appendChild(btn);
+      });
+
+      switchVideo(0);
+
       document.getElementById('loginCard').style.display = 'none';
       document.getElementById('viewer').style.display = 'block';
-      document.getElementById('lectureTitle').textContent = user.title;
-      document.getElementById('videoFrame').src = user.videoUrl;
-
-      const dl = new Date(user.deadline);
-      const dlStr = `${dl.getFullYear()}年${dl.getMonth()+1}月${dl.getDate()}日`;
-      document.getElementById('deadlineText').textContent = `${dlStr} まで`;
     }
 
-    // Enterキーでもログインできる
-    document.addEventListener('keydown', function(e) {
+    function switchVideo(index) {
+      document.getElementById('videoFrame').src = VIDEOS[index].url;
+      document.getElementById('nowPlayingTitle').textContent = VIDEOS[index].title;
+      document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', i === index);
+      });
+    }
+
+    document.addEventListener('keydown', e => {
       if (e.key === 'Enter') checkAccess();
     });
   </script>
